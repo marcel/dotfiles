@@ -54,6 +54,27 @@ def ods(query)
   @client.user(query)
 end
 
+# Amdahl's law
+#
+# e.g.
+#   amdahl(0.2, 3)
+#   => 2.14 # Maximum speedup by increasing concurrency to 3
+#   amdahl(0.2, 32)
+#   => 4.44
+#   amdahl(0.1, 3)
+#   => 2.5
+#   amdahl(0.1, 32)
+#   => 7.8
+def amdahl(fraction_of_work_that_is_serial, concurrency_level)
+  1.0 / (
+          fraction_of_work_that_is_serial +
+          (
+            (1 - fraction_of_work_that_is_serial) /
+            concurrency_level
+          )
+        )
+end
+
 class Hash
   class << self
     def default(val)
@@ -87,13 +108,13 @@ module Kernel
       end
     end
   end
-  
+
   def m(object = Object.new, pattern = nil)
     methods = object.public_methods(false).sort
     methods = methods.grep pattern unless pattern.nil?
     ObjectMethods.new(methods)
   end
-  
+
   class ObjectMethods < Array
     def inspect
       puts sort
@@ -105,7 +126,7 @@ class Numeric
   SCALE_TO_WORD = Hash.new do |h, i|
     " * 10^#{i * 3}"
   end
-  
+
   SCALE_TO_WORD.merge!(
     1  => " thousand",
     2  => " million",
